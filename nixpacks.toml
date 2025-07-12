@@ -1,5 +1,17 @@
 # nixpacks.toml
 
-# Forcing a new build
 [provide.php]
-version = "8.3"
+version = "8.3" 
+
+[build]
+# Daftar perintah yang dijalankan saat proses build
+# Menjalankan migrasi secara otomatis ada di sini
+cmds = [
+    "composer install --no-dev",
+    "php artisan key:generate --force",
+    "php artisan migrate --force"
+]
+
+[start]
+# Perintah untuk menjalankan server setelah build berhasil
+cmd = "php artisan serve --host 0.0.0.0 --port ${PORT}"
