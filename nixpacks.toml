@@ -1,17 +1,19 @@
-# nixpacks.toml
-
-[provide.php]
-version = "8.2" 
+[providers]
+php = "8.2"
 
 [build]
-# Daftar perintah yang dijalankan saat proses build
-# Menjalankan migrasi secara otomatis ada di sini
+# Hapus atau pindahkan migrate ke phase berbeda
 cmds = [
     "composer install --no-dev",
-    "php artisan key:generate --force",
-    "php artisan migrate --force"
+    "php artisan config:cache",
+    "php artisan route:cache",
+    "php artisan view:cache"
 ]
 
 [start]
-# Perintah untuk menjalankan server setelah build berhasil
-cmd = "php artisan serve --host 0.0.0.0 --port ${PORT}"
+# Gunakan port yang benar untuk Railway
+cmd = "php artisan serve --host 0.0.0.0 --port $PORT"
+
+[variables]
+# Pastikan variabel environment yang diperlukan
+APP_ENV = "production"
