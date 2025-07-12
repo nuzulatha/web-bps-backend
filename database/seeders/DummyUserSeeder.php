@@ -16,10 +16,14 @@ class DummyUserSeeder extends Seeder
      */
     public function run()
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password')
-        ]);
+        User::updateOrCreate(
+            [
+                'email' => 'admin@example.com' // Kunci unik untuk dicari
+            ],
+            [
+                'name' => 'Admin', // Data yang akan diisi/diperbarui
+                'password' => Hash::make('password'), // ganti dengan passwordmu
+            ]
+        );
     }
 }
