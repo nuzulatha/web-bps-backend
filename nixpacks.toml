@@ -1,5 +1,5 @@
 # nixpacks.toml
-[providers]
+[provide]
 php = { version = "8.2" }
 
 [phases.build]
