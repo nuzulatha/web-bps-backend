@@ -23,6 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Endpoint untuk Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    // Publikasi 
+    Route::get('/publikasi', [PublikasiController::class, 'index']); 
+    Route::post('/publikasi', [PublikasiController::class, 'store']); 
+
     // Endpoint untuk Publikasi
     // GET /api/publikasi/{id} -> Menampilkan detail
     Route::get('/publikasi/{publikasi}', [PublikasiController::class, 'show']);
@@ -32,8 +36,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // DELETE /api/publikasi/{id} -> Menghapus data
     Route::delete('/publikasi/{publikasi}', [PublikasiController::class, 'destroy']);
-    
-    // Publikasi 
-    Route::get('/publikasi', [PublikasiController::class, 'index']); 
-    Route::post('/publikasi', [PublikasiController::class, 'store']); 
 }); 
