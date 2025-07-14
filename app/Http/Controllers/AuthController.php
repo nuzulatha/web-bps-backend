@@ -57,9 +57,6 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        response()->header('X-Content-Type-Options', 'nosniff');
-        response()->header('X-Frame-Options', 'DENY');
-        response()->header('X-XSS-Protection', '1; mode=block');
         try {
             $credentials = $request->validate([
                 'email' => 'required|string|email',
