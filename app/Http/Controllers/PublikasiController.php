@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Publikasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage; // Jangan lupa import Storage
 
 class PublikasiController extends Controller
 {
@@ -13,7 +14,9 @@ class PublikasiController extends Controller
     public function index()
     {
         // Mengembalikan semua data dalam format JSON
-        return response()->json(Publikasi::all());
+        // Tambahkan get() untuk mengeksekusi query
+        $publikasi = Publikasi::orderBy('created_at', 'desc')->get();
+        return response()->json($publikasi);
     }
 
     /**
@@ -21,43 +24,73 @@ class PublikasiController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. Ubah aturan validasi untuk menerima file gambar
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'releaseDate' => 'required|date',
             'description' => 'nullable|string',
-            'coverUrl' => 'nullable|url',
+            'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi untuk file 'cover'
         ]);
 
-        $publikasi = Publikasi::create($validated);
+        $path = null;
+        // 2. Cek jika ada file 'cover' yang di-upload
+        if ($request->hasFile('cover')) {
+            // Simpan gambar di 'storage/app/public/covers'
+            // $path akan berisi 'covers/namafileunik.jpg'
+            $path = $request->file('cover')->store('covers', 'public');
+        }
+
+        // 3. Simpan path gambar ke database
+        $publikasi = Publikasi::create([
+            'title' => $validated['title'],
+            'releaseDate' => $validated['releaseDate'],
+            'description' => $validated['description'],
+            'cover_url' => $path, // Simpan path ke kolom cover_url
+        ]);
         
         return response()->json($publikasi, 201);
     }
 
     /**
-     * BARU: Menampilkan detail satu publikasi.
+     * Menampilkan detail satu publikasi.
      */
     public function show(Publikasi $publikasi)
     {
-        // Laravel otomatis mencari publikasi berdasarkan ID di URL.
-        // Jika tidak ketemu, otomatis akan menampilkan error 404.
         return response()->json($publikasi);
     }
 
     /**
-     * BARU: Mengubah data publikasi yang ada.
+     * Mengubah data publikasi yang ada.
      */
     public function update(Request $request, Publikasi $publikasi)
     {
-        // Validasi input yang dikirim untuk update
+        // 1. Ubah aturan validasi
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'releaseDate' => 'required|date',
             'description' => 'nullable|string',
-            'coverUrl' => 'nullable|url',
+            'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Lakukan update pada data yang ditemukan
-        $publikasi->update($validated);
+        $path = $publikasi->cover_url; // Gunakan path lama sebagai default
+
+        // 2. Cek jika ada file BARU yang di-upload
+        if ($request->hasFile('cover')) {
+            // Hapus gambar lama jika ada
+            if ($publikasi->cover_url) {
+                Storage::disk('public')->delete($publikasi->cover_url);
+            }
+            // Simpan gambar baru dan dapatkan path-nya
+            $path = $request->file('cover')->store('covers', 'public');
+        }
+
+        // 3. Update data di database dengan path yang baru
+        $publikasi->update([
+            'title' => $validated['title'],
+            'releaseDate' => $validated['releaseDate'],
+            'description' => $validated['description'],
+            'cover_url' => $path,
+        ]);
 
         return response()->json([
             'message' => 'Publikasi berhasil diubah!',
@@ -66,11 +99,15 @@ class PublikasiController extends Controller
     }
 
     /**
-     * BARU: Menghapus data publikasi.
+     * Menghapus data publikasi.
      */
     public function destroy(Publikasi $publikasi)
     {
-        // Hapus data dari database
+        // Hapus gambar dari storage sebelum menghapus record database
+        if ($publikasi->cover_url) {
+            Storage::disk('public')->delete($publikasi->cover_url);
+        }
+
         $publikasi->delete();
 
         return response()->json([
@@ -78,3 +115,83 @@ class PublikasiController extends Controller
         ]);
     }
 }
+
+// namespace App\Http\Controllers;
+
+// use App\Models\Publikasi;
+// use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\Storage; 
+
+// class PublikasiController extends Controller
+// {
+//     /**
+//      * Menampilkan semua data publikasi.
+//      */
+//     public function index()
+//     {
+//         // Mengembalikan semua data dalam format JSON
+//         return response()->json(Publikasi::all());
+//     }
+
+//     /**
+//      * Menyimpan data publikasi baru.
+//      */
+//     public function store(Request $request)
+//     {
+//         $validated = $request->validate([
+//             'title' => 'required|string|max:255',
+//             'releaseDate' => 'required|date',
+//             'description' => 'nullable|string',
+//             'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi untuk file 'cover'
+//         ]);
+
+//         $publikasi = Publikasi::create($validated);
+        
+//         return response()->json($publikasi, 201);
+//     }
+
+//     /**
+//      * BARU: Menampilkan detail satu publikasi.
+//      */
+//     public function show(Publikasi $publikasi)
+//     {
+//         // Laravel otomatis mencari publikasi berdasarkan ID di URL.
+//         // Jika tidak ketemu, otomatis akan menampilkan error 404.
+//         return response()->json($publikasi);
+//     }
+
+//     /**
+//      * BARU: Mengubah data publikasi yang ada.
+//      */
+//     public function update(Request $request, Publikasi $publikasi)
+//     {
+//         // Validasi input yang dikirim untuk update
+//         $validated = $request->validate([
+//             'title' => 'required|string|max:255',
+//             'releaseDate' => 'required|date',
+//             'description' => 'nullable|string',
+//             'coverUrl' => 'nullable|url',
+//         ]);
+
+//         // Lakukan update pada data yang ditemukan
+//         $publikasi->update($validated);
+
+//         return response()->json([
+//             'message' => 'Publikasi berhasil diubah!',
+//             'data' => $publikasi
+//         ]);
+//     }
+
+//     /**
+//      * BARU: Menghapus data publikasi.
+//      */
+//     public function destroy(Publikasi $publikasi)
+//     {
+//         // Hapus data dari database
+//         $publikasi->delete();
+
+//         return response()->json([
+//             'message' => 'Publikasi berhasil dihapus!'
+//         ]);
+//     }
+// }
