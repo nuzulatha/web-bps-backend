@@ -13,6 +13,6 @@ class Publikasi extends Model
         'title',
         'releaseDate',
         'description',
-        'cover_url',
+        'coverUrl',
     ];
 }
