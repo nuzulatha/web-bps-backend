@@ -72,13 +72,13 @@ class PublikasiController extends Controller
             'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $path = $publikasi->cover_url; // Gunakan path lama sebagai default
+        $path = $publikasi->coverUrl; // Gunakan path lama sebagai default
 
         // 2. Cek jika ada file BARU yang di-upload
         if ($request->hasFile('cover')) {
             // Hapus gambar lama jika ada
-            if ($publikasi->cover_url) {
-                Storage::disk('public')->delete($publikasi->cover_url);
+            if ($publikasi->coverUrl) {
+                Storage::disk('public')->delete($publikasi->coverUrl);
             }
             // Simpan gambar baru dan dapatkan path-nya
             $path = $request->file('cover')->store('covers', 'public');
@@ -89,7 +89,7 @@ class PublikasiController extends Controller
             'title' => $validated['title'],
             'releaseDate' => $validated['releaseDate'],
             'description' => $validated['description'],
-            'cover_url' => $path,
+            'coverUrl' => $path,
         ]);
 
         return response()->json([
@@ -104,8 +104,8 @@ class PublikasiController extends Controller
     public function destroy(Publikasi $publikasi)
     {
         // Hapus gambar dari storage sebelum menghapus record database
-        if ($publikasi->cover_url) {
-            Storage::disk('public')->delete($publikasi->cover_url);
+        if ($publikasi->coverUrl) {
+            Storage::disk('public')->delete($publikasi->coverUrl);
         }
 
         $publikasi->delete();
